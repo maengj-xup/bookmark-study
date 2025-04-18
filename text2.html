@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Book Stack</title>
+    <style>
+      body {
+        margin: 0;
+        background: #111;
+        color: white;
+        font-family: sans-serif;
+        overflow-x: hidden;
+        height: 100vh;
+        perspective: 1500px;
+      }
+
+      .stack {
+        position: relative;
+        transform-style: preserve-3d;
+        height: 800px;
+        width: 300px;
+        margin: auto;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .book {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 300px;
+        height: 400px;
+        transform-style: preserve-3d;
+        transform: rotateX(90deg);
+        transform-origin: center;
+        transition: transform 0.8s;
+        cursor: pointer;
+      }
+
+      .book .face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .book .front {
+        background-size: cover;
+        background-position: center;
+      }
+
+      .book .back {
+        background: #222;
+        color: white;
+        transform: rotateX(180deg);
+        padding: 1em;
+        box-sizing: border-box;
+      }
+
+      .preview-layer {
+        position: absolute;
+        width: 300px;
+        height: 400px;
+        top: 500px;
+        left: 300px;
+        z-index: 9999;
+        transform-style: preserve-3d;
+        transition: transform 0.8s;
+      }
+
+      .preview-front,
+      .preview-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .preview-front {
+        background-size: cover;
+        background-position: center;
+      }
+
+      .preview-back {
+        background: #222;
+        color: white;
+        transform: rotateY(180deg);
+        padding: 1em;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stack" id="stack"></div>
+
+    <script>
+      const stack = document.getElementById("stack");
+      const imageBase = "https://framerusercontent.com/images";
+      const imageList = [
+        "OzIOiaueSBUytIE3Wtmo785pKOk.webp",
+        "IyQvv53Mfc9MZengNELB2nwQwU.webp",
+        "pLwB0PWZ1jAF6hd6lPuOt28njk.webp",
+        "rev5YyMdjW1Z9kfHKTcmGQn9aSE.webp",
+        "MgIR8I4Bru0qxx09QiUiBNYerqg.webp",
+        "D38V78HBnMkwfcJ4qBPR6UYzbmA.webp",
+        "hcOa8YUZIaWNMauqwrUTKGhQCbs.webp",
+      ];
+
+      const books = [];
+      let currentTopIndex = 0;
+
+      for (let i = 0; i < 20; i++) {
+        const book = document.createElement("div");
+        book.className = "book";
+        book.style.transform = `rotateX(90deg) translateZ(${i * 40}px)`;
+
+        const front = document.createElement("div");
+        front.className = "face front";
+        front.style.backgroundImage = `url('${imageBase}/${
+          imageList[i % imageList.length]
+        }')`;
+
+        const back = document.createElement("div");
+        back.className = "face back";
+        back.innerHTML = `<h2>Book ${i + 1}</h2><p>Details of book ${
+          i + 1
+        }</p>`;
+
+        book.appendChild(front);
+        book.appendChild(back);
+
+        // 카드 클릭 시 미리보기 레이어 생성
+        book.addEventListener("click", () => {
+          const existing = document.querySelector(".preview-layer");
+          if (existing) {
+            existing.remove();
+            return;
+          }
+
+          const preview = document.createElement("div");
+          preview.className = "preview-layer";
+
+          const previewFront = document.createElement("div");
+          previewFront.className = "preview-front";
+          previewFront.style.backgroundImage = front.style.backgroundImage;
+
+          const previewBack = document.createElement("div");
+          previewBack.className = "preview-back";
+          previewBack.innerHTML = `<h2>Book ${i + 1}</h2><p>Details of book ${
+            i + 1
+          }</p>`;
+
+          preview.appendChild(previewFront);
+          preview.appendChild(previewBack);
+
+          preview.addEventListener("click", () => {
+            if (preview.style.transform.includes("rotateY(180deg)")) {
+              preview.style.transform = "rotateY(0deg)";
+            } else {
+              preview.style.transform = "rotateY(180deg)";
+            }
+          });
+
+          document.body.appendChild(preview);
+        });
+
+        stack.appendChild(book);
+        books.push(book);
+      }
+
+      // 중간 클릭 회전 기능
+      let isMiddleClicking = false;
+      let lastX = 0,
+        lastY = 0;
+      let rotX = 0,
+        rotY = 0;
+
+      document.addEventListener("mousedown", (e) => {
+        if (e.button === 1) {
+          e.preventDefault();
+          isMiddleClicking = true;
+          lastX = e.clientX;
+          lastY = e.clientY;
+        }
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!isMiddleClicking) return;
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        rotY += dx * 0.5;
+        rotX -= dy * 0.5;
+        stack.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        lastX = e.clientX;
+        lastY = e.clientY;
+      });
+
+      document.addEventListener("mouseup", (e) => {
+        if (e.button === 1) {
+          isMiddleClicking = false;
+        }
+      });
+
+      // 수직 스크롤로 카드 넘기기
+      window.addEventListener("wheel", (e) => {
+        const previewOpen = document.querySelector(".preview-layer");
+        if (previewOpen) return;
+
+        if (e.deltaY > 0 && currentTopIndex < books.length - 1) {
+          currentTopIndex++;
+          updateBookTransforms();
+        } else if (e.deltaY < 0 && currentTopIndex > 0) {
+          currentTopIndex--;
+          updateBookTransforms();
+        }
+      });
+
+      function updateBookTransforms() {
+        books.forEach((book, i) => {
+          const offset = i - currentTopIndex;
+          book.style.transform = `rotateX(90deg) translateZ(${offset * 40}px)`;
+        });
+      }
+    </script>
+  </body>
+</html>

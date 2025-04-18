@@ -1,0 +1,170 @@
+3d Book Example 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51
+52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78
+79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103
+104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123
+124 125 126
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Book Showcase</title>
+    <style>
+      body {
+        margin: 0;
+        background: #111;
+        color: white;
+        font-family: sans-serif;
+        overflow-x: hidden;
+      }
+
+      .scene {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        perspective: 1500px;
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        transform-style: preserve-3d;
+      }
+
+      .book {
+        width: 300px;
+        height: 400px;
+        position: relative;
+        transform-style: preserve-3d;
+        transform-origin: center;
+        transition: transform 1s;
+      }
+
+      .book:hover {
+        transform: rotateX(180deg);
+      }
+
+      .book .face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .book .front {
+        background-size: cover;
+        background-position: center;
+      }
+
+      .book .back {
+        background: #222;
+        color: white;
+        transform: rotateX(180deg);
+        padding: 1em;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div class="stack">
+        <div class="book">
+          <div
+            class="face front"
+            style="
+              background-image: url('https://framerusercontent.com/images/OzIOiaueSBUytIE3Wtmo785pKOk.webp');
+            "
+          ></div>
+          <div class="face back">
+            <h2>Book A</h2>
+            <p>Description of Book A</p>
+          </div>
+        </div>
+        <div class="book">
+          <div
+            class="face front"
+            style="
+              background-image: url('https://framerusercontent.com/images/IyQvv53Mfc9MZengNELB2nwQwU.webp');
+            "
+          ></div>
+          <div class="face back">
+            <h2>Book B</h2>
+            <p>Description of Book B</p>
+          </div>
+        </div>
+        <div class="book">
+          <div
+            class="face front"
+            style="
+              background-image: url('https://framerusercontent.com/images/pLwB0PWZ1jAF6hd6lPuOt28njk.webp');
+            "
+          ></div>
+          <div class="face back">
+            <h2>Book C</h2>
+            <p>Description of Book C</p>
+          </div>
+        </div>
+        <div class="book">
+          <div
+            class="face front"
+            style="
+              background-image: url('https://framerusercontent.com/images/rev5YyMdjW1Z9kfHKTcmGQn9aSE.webp');
+            "
+          ></div>
+          <div class="face back">
+            <h2>Stripe Press</h2>
+            <p>A deep look into design, systems, and code in publishing.</p>
+            <p>
+              <a href="https://press.stripe.com" style="color: #ff6006"
+                >Visit →</a
+              >
+            </p>
+          </div>
+        </div>
+        <div class="book">
+          <div
+            class="face front"
+            style="
+              background-image: url('https://framerusercontent.com/images/MgIR8I4Bru0qxx09QiUiBNYerqg.webp');
+            "
+          ></div>
+          <div class="face back">
+            <h2>Book D</h2>
+            <p>Description of Book D</p>
+          </div>
+        </div>
+        <div class="book">
+          <div
+            class="face front"
+            style="
+              background-image: url('https://framerusercontent.com/images/D38V78HBnMkwfcJ4qBPR6UYzbmA.webp');
+            "
+          ></div>
+          <div class="face back">
+            <h2>Book E</h2>
+            <p>Description of Book E</p>
+          </div>
+        </div>
+        <div class="book">
+          <div
+            class="face front"
+            style="
+              background-image: url('https://framerusercontent.com/images/hcOa8YUZIaWNMauqwrUTKGhQCbs.webp');
+            "
+          ></div>
+          <div class="face back">
+            <h2>Book F</h2>
+            <p>Description of Book F</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
