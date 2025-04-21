@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hex Bookmark Scroll</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #111;
+        font-family: sans-serif;
+        color: white;
+      }
+      .scene {
+        perspective: 1200px;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .hex-container {
+        width: 300px;
+        height: 600px;
+        position: relative;
+        transform-style: preserve-3d;
+        transform: rotateY(0deg);
+        transition: transform 0.3s ease;
+      }
+      .face {
+        position: absolute;
+        width: 400px;
+        height: 600px;
+        background: #222;
+        border: 1px solid #444;
+        padding: 1rem;
+        box-sizing: border-box;
+        overflow-y: auto;
+      }
+      .face h2 {
+        margin-top: 0;
+      }
+      .bookmark {
+        margin-bottom: 1rem;
+      }
+      .bookmark:hover .description {
+        max-height: 100px;
+      }
+      .description {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        font-size: 0.85em;
+        color: #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div class="hex-container" id="hexContainer">
+        <div class="face" style="transform: rotateY(0deg) translateZ(400px)">
+          <h2>Category 1</h2>
+          <div class="bookmark">
+            <div>
+              <a href="https://undraw.co/illustrations" target="_blank"
+                >Illustrations | unDraw</a
+              >
+              <div class="description">
+                <strong>2024-10-01 04:55:34</strong>
+                <div class="description">
+                  오픈소스 일러스트 모음 사이트입니다.
+                </div>
+              </div>
+            </div>
+
+            <div>2024-10-01</div>
+            <div class="description">오픈소스 일러스트 모음 사이트입니다.</div>
+          </div>
+          <div class="bookmark">
+            <div><strong>2024-02-21 14:03:01</strong></div>
+            <a
+              href="https://www.chicagomanualofstyle.org/tools_citationguide/citation-guide-1.html"
+              target="_blank"
+              >Chicago Manual Citation Guide</a
+            >
+            <div>2024-02-21</div>
+            <div class="description">
+              시카고 스타일 참고문헌 표기법 가이드입니다.
+            </div>
+          </div>
+          <!-- 추가 항목 생략 -->
+        </div>
+        <div class="face" style="transform: rotateY(60deg) translateZ(400px)">
+          <h2>Category 2</h2>
+          <!-- 유사 항목들 삽입 가능 -->
+        </div>
+        <div class="face" style="transform: rotateY(120deg) translateZ(400px)">
+          <h2>Category 3</h2>
+        </div>
+        <div class="face" style="transform: rotateY(180deg) translateZ(400px)">
+          <h2>Category 4</h2>
+        </div>
+        <div class="face" style="transform: rotateY(240deg) translateZ(400px)">
+          <h2>Category 5</h2>
+        </div>
+        <div class="face" style="transform: rotateY(300deg) translateZ(400px)">
+          <h2>Category 6</h2>
+        </div>
+      </div>
+    </div>
+    <script>
+      const hex = document.getElementById("hexContainer");
+      let current = 0;
+      window.addEventListener("wheel", (e) => {
+        current += e.deltaY > 0 ? 1 : -1;
+        hex.style.transform = `rotateY(${current * 10}deg)`;
+      });
+    </script>
+  </body>
+</html>

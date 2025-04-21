@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convex Text Cylinders</title>
+    <style>
+      body {
+        margin: 0;
+        background: #111;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+
+      .container {
+        width: 100vw;
+        height: 100vh;
+        perspective: 800px;
+        transform-style: preserve-3d;
+        transition: transform 0.8s ease;
+      }
+
+      .cylinder {
+        position: absolute;
+        bottom: 0;
+        writing-mode: vertical-rl;
+        text-align: center;
+        transform-origin: bottom center;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        transition: transform 0.8s, filter 0.8s, left 0.8s, top 0.8s;
+        white-space: nowrap;
+      }
+
+      .convex-text {
+        background: radial-gradient(ellipse at center, #fff, #666);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+      }
+
+      .detail {
+        position: absolute;
+        top: 10%;
+        left: 50%;
+        width: 40%;
+        color: white;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s;
+      }
+
+      .cylinder.active {
+        left: 5% !important;
+        top: 10% !important;
+        transform: none !important;
+        filter: none !important;
+        z-index: 10;
+      }
+
+      .cylinder.active + .detail {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+      const container = $(".container");
+      const phrases = [
+        "Dream",
+        "Memory",
+        "Ocean",
+        "Signal",
+        "Pattern",
+        "Syntax",
+        "Echo",
+        "Ghost",
+        "Time",
+        "Pulse",
+        "Maze",
+        "Layer",
+        "Noise",
+        "Shift",
+        "Thread",
+      ];
+
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function createCylinder(text, index) {
+        const width = random(80, 200);
+        const left = random(0, window.innerWidth - width);
+        const depth = random(-500, 300);
+        const blur = Math.max(0, (300 - depth) / 40);
+
+        const $cyl = $(`
+        <div class="cylinder convex-text" style="
+          width:${width}px;
+          height: 100vh;
+          left: ${left}px;
+          transform: translateZ(${depth}px) rotateY(${random(-40, 40)}deg);
+          filter: blur(${blur}px);
+          ">${text}</div>
+      `);
+
+        const $detail = $(`
+        <div class="detail">You clicked <strong>${text}</strong>. This is a placeholder for more info.</div>
+      `);
+
+        $cyl.click(function () {
+          const isActive = $(this).hasClass("active");
+          $(".cylinder").removeClass("active");
+          $(".detail").remove();
+          if (!isActive) {
+            $(this).addClass("active");
+            $(this).after($detail);
+          }
+        });
+
+        container.append($cyl);
+      }
+
+      phrases.forEach(createCylinder);
+
+      // Mouse move for exploring space
+      $(document).on("mousemove", function (e) {
+        const x = (e.clientX / window.innerWidth - 0.5) * 20;
+        const y = (e.clientY / window.innerHeight - 0.5) * -20;
+        $(".container").css("transform", `rotateX(${y}deg) rotateY(${x}deg)`);
+      });
+    </script>
+  </body>
+</html>

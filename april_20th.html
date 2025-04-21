@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Cube Page Transition</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        background: #111;
+        font-family: sans-serif;
+      }
+
+      .menu {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: flex;
+        gap: 20px;
+      }
+
+      .menu button {
+        background: #fff;
+        color: #000;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .about-dropdown {
+        display: none;
+        position: absolute;
+        top: 60px;
+        background: #fff;
+        color: #000;
+        padding: 10px;
+        font-size: 14px;
+        width: 300px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+
+      .scene {
+        width: 100vw;
+        height: 100vh;
+        perspective: 2000px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .cube-wrapper {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 1s ease-in-out;
+      }
+
+      .page {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        backface-visibility: hidden;
+      }
+
+      .page:nth-child(1) {
+        transform: rotateY(0deg) translateZ(50vw);
+        background: #fdfcf8;
+      }
+
+      .page:nth-child(2) {
+        transform: rotateY(180deg) translateZ(50vw);
+        background: #111;
+      }
+
+      /* 추가: 3D Book Stack 내부 요소 */
+      .stack {
+        position: relative;
+        transform-style: preserve-3d;
+        height: 800px;
+        width: 300px;
+        margin: auto;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .book {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 300px;
+        height: 400px;
+        transform-style: preserve-3d;
+        transform: rotateX(90deg);
+        transform-origin: center;
+        transition: transform 0.8s;
+        cursor: pointer;
+      }
+      .book .face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      .book .front {
+        background-size: cover;
+        background-position: center;
+      }
+      .book .back {
+        background: #222;
+        color: white;
+        transform: rotateX(180deg);
+        padding: 1em;
+        box-sizing: border-box;
+      }
+      .preview-layer {
+        position: absolute;
+        width: 300px;
+        height: 400px;
+        top: 500px;
+        left: 300px;
+        z-index: 9999;
+        transform-style: preserve-3d;
+        transition: transform 0.8s;
+      }
+      .preview-front,
+      .preview-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      .preview-front {
+        background-size: cover;
+        background-position: center;
+      }
+      .preview-back {
+        background: #222;
+        color: white;
+        transform: rotateY(180deg);
+        padding: 1em;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="menu">
+      <button onclick="prevPage()">◀</button>
+      <button onclick="toggleAbout()">About</button>
+      <button onclick="nextPage()">▶</button>
+    </div>
+    <div class="about-dropdown" id="aboutBox">
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
+        facilisis turpis et dui interdum, at laoreet nibh dictum. Cras sed neque
+        orci. Duis ultrices gravida libero, nec dapibus velit dapibus sit amet.
+      </p>
+    </div>
+    <div class="scene">
+      <div class="cube-wrapper" id="cube">
+        <div class="page" id="page1">
+          <!-- Bookmark Viewer가 들어갈 실제 코드 공간 -->
+          <h2 style="text-align: center; padding: 40px">
+            Bookmark Viewer 영역 (추후 전체 삽입)
+          </h2>
+        </div>
+        <div class="page" id="page2">
+          <div class="stack" id="stack"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let current = 0;
+      const cube = document.getElementById("cube");
+      const aboutBox = document.getElementById("aboutBox");
+
+      function nextPage() {
+        current = (current + 1) % 2;
+        cube.style.transform = `rotateY(-${current * 180}deg)`;
+        aboutBox.style.display = "none";
+      }
+
+      function prevPage() {
+        current = (current - 1 + 2) % 2;
+        cube.style.transform = `rotateY(-${current * 180}deg)`;
+        aboutBox.style.display = "none";
+      }
+
+      function toggleAbout() {
+        aboutBox.style.display =
+          aboutBox.style.display === "block" ? "none" : "block";
+      }
+
+      // 3D Book Stack 로직 삽입
+      const stack = document.getElementById("stack");
+      const imageBase = "https://framerusercontent.com/images";
+      const imageList = [
+        "OzIOiaueSBUytIE3Wtmo785pKOk.webp",
+        "IyQvv53Mfc9MZengNELB2nwQwU.webp",
+        "pLwB0PWZ1jAF6hd6lPuOt28njk.webp",
+        "rev5YyMdjW1Z9kfHKTcmGQn9aSE.webp",
+        "MgIR8I4Bru0qxx09QiUiBNYerqg.webp",
+        "D38V78HBnMkwfcJ4qBPR6UYzbmA.webp",
+        "hcOa8YUZIaWNMauqwrUTKGhQCbs.webp",
+      ];
+
+      const books = [];
+      let currentTopIndex = 0;
+
+      for (let i = 0; i < 20; i++) {
+        const book = document.createElement("div");
+        book.className = "book";
+        book.style.transform = `rotateX(90deg) translateZ(${i * 40}px)`;
+
+        const front = document.createElement("div");
+        front.className = "face front";
+        front.style.backgroundImage = `url('${imageBase}/${
+          imageList[i % imageList.length]
+        }')`;
+
+        const back = document.createElement("div");
+        back.className = "face back";
+        back.innerHTML = `<h2>Book ${i + 1}</h2><p>Details of book ${
+          i + 1
+        }</p>`;
+
+        book.appendChild(front);
+        book.appendChild(back);
+
+        book.addEventListener("click", () => {
+          const existing = document.querySelector(".preview-layer");
+          if (existing) {
+            existing.remove();
+            return;
+          }
+
+          const preview = document.createElement("div");
+          preview.className = "preview-layer";
+
+          const previewFront = document.createElement("div");
+          previewFront.className = "preview-front";
+          previewFront.style.backgroundImage = front.style.backgroundImage;
+
+          const previewBack = document.createElement("div");
+          previewBack.className = "preview-back";
+          previewBack.innerHTML = `<h2>Book ${i + 1}</h2><p>Details of book ${
+            i + 1
+          }</p>`;
+
+          preview.appendChild(previewFront);
+          preview.appendChild(previewBack);
+
+          preview.addEventListener("click", () => {
+            preview.style.transform = preview.style.transform.includes("180deg")
+              ? "rotateY(0deg)"
+              : "rotateY(180deg)";
+          });
+
+          document.body.appendChild(preview);
+        });
+
+        stack.appendChild(book);
+        books.push(book);
+      }
+
+      window.addEventListener("wheel", (e) => {
+        const previewOpen = document.querySelector(".preview-layer");
+        if (previewOpen) return;
+
+        if (e.deltaY > 0 && currentTopIndex < books.length - 1) {
+          currentTopIndex++;
+          updateBookTransforms();
+        } else if (e.deltaY < 0 && currentTopIndex > 0) {
+          currentTopIndex--;
+          updateBookTransforms();
+        }
+      });
+
+      function updateBookTransforms() {
+        books.forEach((book, i) => {
+          const offset = i - currentTopIndex;
+          book.style.transform = `rotateX(90deg) translateZ(${offset * 40}px)`;
+        });
+      }
+    </script>
+  </body>
+</html>

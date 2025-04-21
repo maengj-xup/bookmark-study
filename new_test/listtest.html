@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bookmark Viewer with Canvas Tools</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Courier New", monospace;
+        height: 100vh;
+        display: flex;
+        overflow: hidden;
+        background: #fdfcf8;
+      }
+      .left-panel {
+        width: 66.66%;
+        min-width: 300px;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        overflow-y: auto;
+        background: #ffffff;
+        border-right: 1px solid #ccc;
+      }
+      .resizer {
+        width: 6px;
+        cursor: col-resize;
+        background: linear-gradient(
+          to right,
+          rgba(200, 200, 200, 0.1),
+          rgba(150, 150, 150, 0.5),
+          #fdfcf8,
+          #ddd,
+          #fdfcf8,
+          rgba(150, 150, 150, 0.5),
+          rgba(200, 200, 200, 0.1)
+        );
+        box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.1),
+          inset -1px 0 2px rgba(0, 0, 0, 0.1);
+      }
+      .right-panel {
+        flex: 1;
+        position: relative;
+        background: #fdfcf8;
+        overflow: hidden;
+      }
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .card-info {
+        position: absolute;
+        background: white;
+        padding: 12px;
+        border: 1px solid #999;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+        z-index: 5;
+        max-width: 300px;
+        transition: transform 0.3s ease;
+      }
+      .card-info.folded::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 30px;
+        height: 30px;
+        background: white;
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+        border-left: 1px solid #ccc;
+        border-top: 1px solid #ccc;
+      }
+      .card-info .fold-corner {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        bottom: 0;
+        right: 0;
+        z-index: 6;
+        cursor: pointer;
+      }
+      .toolbox {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border: 1px solid #aaa;
+        padding: 10px;
+        z-index: 20;
+        display: flex;
+        gap: 6px;
+      }
+      .toolbox button {
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .toolbox input[type="color"] {
+        width: 30px;
+        height: 30px;
+        border: none;
+        cursor: pointer;
+      }
+      .controls,
+      .category-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+        gap: 8px;
+      }
+      .bookmark-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      .bookmark-item:hover {
+        background-color: #f0f0f0;
+      }
+      .bookmark-title {
+        font-size: 14px;
+        color: #111;
+        flex: 1;
+      }
+      .bookmark-timestamp {
+        font-size: 12px;
+        color: #888;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="left-panel">
+      <div class="controls">
+        <input type="text" id="searchInput" placeholder="Search keywords" />
+        <input type="date" id="dateFilter" />
+        <select id="sortSelect">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="az">A–Z</option>
+          <option value="za">Z–A</option>
+        </select>
+        <button onclick="groupByCategory()">Toggle Grouping</button>
+      </div>
+      <div class="category-buttons" id="categoryButtons"></div>
+      <div id="bookmarkList"></div>
+    </div>
+    <div class="resizer" id="resizer"></div>
+    <div class="right-panel">
+      <canvas id="annotationCanvas"></canvas>
+      <div class="toolbox">
+        <button onclick="setTool('highlight')">Highlighter</button>
+        <button onclick="setTool('underline')">Underline</button>
+        <input type="color" id="colorPicker" value="#ffff66" />
+      </div>
+    </div>
+
+    <script>
+      const bookmarks = [
+        {
+          name: "Google Calendar",
+          url: "https://calendar.google.com",
+          add_date: 1676791431,
+          category: "Tools",
+          description: "Online calendar",
+        },
+        {
+          name: "명지대학교",
+          url: "https://ucheck.mju.ac.kr/",
+          add_date: 1741094369,
+          category: "School",
+          description: "Student portal",
+        },
+        {
+          name: "Android Button Maker",
+          url: "https://angrytools.com/android/button/",
+          add_date: 1739799576,
+          category: "Dev Tools",
+          description: "Generate Android XML buttons",
+        },
+      ];
+
+      let grouped = false;
+      let selectedCategories = new Set();
+      let currentTool = "highlight";
+      const canvas = document.getElementById("annotationCanvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+
+      function setTool(tool) {
+        currentTool = tool;
+        canvas.style.pointerEvents = "auto";
+      }
+
+      function hexToRgba(hex, alpha = 1) {
+        const bigint = parseInt(hex.slice(1), 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+
+      canvas.addEventListener("mousedown", (e) => {
+        drawing = true;
+        startX = e.offsetX;
+        startY = e.offsetY;
+        if (currentTool === "highlight") {
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+        }
+      });
+
+      canvas.addEventListener("mousemove", (e) => {
+        if (!drawing || currentTool !== "highlight") return;
+        ctx.strokeStyle = hexToRgba(
+          document.getElementById("colorPicker").value,
+          0.4
+        );
+        ctx.lineWidth = 20;
+        ctx.lineCap = "round";
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      });
+
+      canvas.addEventListener("mouseup", (e) => {
+        if (currentTool === "underline") {
+          ctx.strokeStyle = document.getElementById("colorPicker").value;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(e.offsetX, e.offsetY);
+          ctx.stroke();
+        }
+        drawing = false;
+      });
+
+      function renderCategoryButtons(bookmarks) {
+        const cats = [...new Set(bookmarks.map((b) => b.category))];
+        const catEl = document.getElementById("categoryButtons");
+        catEl.innerHTML = "";
+
+        const allBtn = document.createElement("button");
+        allBtn.innerText = "All";
+        allBtn.onclick = () => {
+          selectedCategories.clear();
+          renderList(bookmarks);
+        };
+        catEl.appendChild(allBtn);
+
+        cats.forEach((cat) => {
+          const btn = document.createElement("button");
+          btn.innerText = cat;
+          if (selectedCategories.has(cat)) btn.classList.add("active");
+          btn.onclick = () => {
+            if (selectedCategories.has(cat)) selectedCategories.delete(cat);
+            else selectedCategories.add(cat);
+            renderList(bookmarks);
+          };
+          catEl.appendChild(btn);
+        });
+      }
+
+      function renderList(bookmarks) {
+        const listEl = document.getElementById("bookmarkList");
+        listEl.innerHTML = "";
+        const search = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const dateFilter = document.getElementById("dateFilter").value;
+        const sortBy = document.getElementById("sortSelect").value;
+
+        let filtered = bookmarks.filter((b) => {
+          const dateMatch =
+            !dateFilter ||
+            new Date(b.add_date * 1000).toISOString().startsWith(dateFilter);
+          const keywordMatch = b.name.toLowerCase().includes(search);
+          const categoryMatch =
+            selectedCategories.size === 0 || selectedCategories.has(b.category);
+          return dateMatch && keywordMatch && categoryMatch;
+        });
+
+        filtered.sort((a, b) => {
+          if (sortBy === "newest") return b.add_date - a.add_date;
+          if (sortBy === "oldest") return a.add_date - b.add_date;
+          if (sortBy === "az") return a.name.localeCompare(b.name);
+          if (sortBy === "za") return b.name.localeCompare(a.name);
+          return 0;
+        });
+
+        filtered.forEach((b, i) => {
+          const item = document.createElement("div");
+          item.className = "bookmark-item";
+          item.innerHTML = `
+          <div class="bookmark-title">${b.name}</div>
+          <div class="bookmark-timestamp">${new Date(
+            b.add_date * 1000
+          ).toLocaleDateString()}</div>
+        `;
+          item.onclick = () => createCard(b, i);
+          listEl.appendChild(item);
+        });
+      }
+
+      function createCard(bookmark, index) {
+        const info = document.createElement("div");
+        info.className = "card-info";
+        info.style.top = `${50 + index * 40}px`;
+        info.style.left = `${50 + index * 30}px`;
+        info.innerHTML = `
+        <div class="fold-corner" onclick="this.parentElement.classList.toggle('folded')"></div>
+        <h3>${bookmark.name}</h3>
+        <p><a href="${bookmark.url}" target="_blank">${bookmark.url}</a></p>
+        <p>Category: ${bookmark.category}</p>
+        <p>Date: ${new Date(bookmark.add_date * 1000).toLocaleDateString()}</p>
+        <p>${bookmark.description}</p>
+      `;
+        document.querySelector(".right-panel").appendChild(info);
+      }
+
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", () => renderList(bookmarks));
+      document
+        .getElementById("dateFilter")
+        .addEventListener("change", () => renderList(bookmarks));
+      document
+        .getElementById("sortSelect")
+        .addEventListener("change", () => renderList(bookmarks));
+
+      renderCategoryButtons(bookmarks);
+      renderList(bookmarks);
+
+      let drawing = false;
+      let startX = 0;
+      let startY = 0;
+
+      const resizer = document.getElementById("resizer");
+      const leftPanel = document.querySelector(".left-panel");
+      const rightPanel = document.querySelector(".right-panel");
+      resizer.addEventListener("mousedown", function () {
+        document.onmousemove = function (e) {
+          const left = e.clientX;
+          const total = window.innerWidth;
+          leftPanel.style.width = left + "px";
+          rightPanel.style.width = total - left - 6 + "px";
+          canvas.width = rightPanel.clientWidth;
+          canvas.height = rightPanel.clientHeight;
+        };
+        document.onmouseup = function () {
+          document.onmousemove = null;
+          document.onmouseup = null;
+        };
+      });
+    </script>
+  </body>
+</html>

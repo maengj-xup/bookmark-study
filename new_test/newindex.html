@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Drawer Bookmarks</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fefcf7;
+        font-family: "Georgia", serif;
+        overflow-x: hidden;
+      }
+
+      .category-list {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 80px;
+        left: 0;
+        z-index: 10;
+      }
+
+      .category-btn {
+        width: 30px;
+        height: 320px;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        transform: rotate(180deg);
+        background: #333;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+
+      .row-wrapper {
+        display: none;
+        align-items: center;
+        height: 320px;
+        margin-left: 50px;
+        transform-style: preserve-3d;
+        transform: perspective(1000px);
+        opacity: 0;
+        transition: all 0.6s ease;
+      }
+
+      .row-wrapper.active {
+        display: flex;
+        opacity: 1;
+        transform: perspective(1000px) rotateX(0deg) translateZ(0px);
+      }
+
+      .scroll-container {
+        display: flex;
+        flex-direction: row;
+        gap: 1.5rem;
+        overflow-x: auto;
+        padding: 1rem 2rem;
+        width: 100vw;
+        height: 100%;
+      }
+
+      .scroll-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      .card {
+        flex: 0 0 300px;
+        height: 300px;
+        background: white;
+        border: 1px solid #333;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: scale(1.05);
+      }
+
+      .card iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        transform: scale(0.5);
+        transform-origin: top left;
+        pointer-events: none;
+      }
+
+      .card h2 {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        font-size: 1rem;
+        text-align: center;
+        padding: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 카테고리 버튼 -->
+    <div class="category-list">
+      <button class="category-btn" onclick="openCategory(0)">POETRY</button>
+      <button class="category-btn" onclick="openCategory(1)">DESIGN</button>
+      <button class="category-btn" onclick="openCategory(2)">LAYERS</button>
+    </div>
+
+    <!-- 각 줄 -->
+    <div class="row-wrapper active">
+      <div class="scroll-container">
+        <div class="card">
+          <iframe src="https://100daysofpoetry.gallery/"></iframe>
+          <h2>100 Days of Poetry</h2>
+        </div>
+        <div class="card">
+          <iframe src="https://pushpulldoor.kr"></iframe>
+          <h2>PushPullDoor</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-wrapper">
+      <div class="scroll-container">
+        <div class="card">
+          <iframe src="https://earth.net"></iframe>
+          <h2>Earth.net</h2>
+        </div>
+        <div class="card">
+          <iframe src="https://2024.materiaabierta.com"></iframe>
+          <h2>Materia Abierta</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-wrapper">
+      <div class="scroll-container">
+        <div class="card">
+          <iframe src="https://thinkingwithmoss.net"></iframe>
+          <h2>Thinking With Moss</h2>
+        </div>
+        <div class="card">
+          <iframe src="https://pushpulldoor.kr"></iframe>
+          <h2>PushPullDoor</h2>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openCategory(index) {
+        const rows = document.querySelectorAll(".row-wrapper");
+        rows.forEach((row, i) => {
+          if (i === index) {
+            row.classList.add("active");
+          } else {
+            row.classList.remove("active");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
